@@ -1,0 +1,89 @@
+name: Generated APK AAB (Upload - Create Artifact To Github Action)
+
+env:
+  main_project_module: app
+  playstore_name: IL2CPP Inspector
+
+on:
+
+  push:
+    branches:
+      - 'release/**'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: Set repository name as env variable
+        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
+      - name: Download frida-inject binaries for arm and arm64
+        run: |
+          mkdir -p frida_binaries/armeabi-v7a
+          mkdir -p frida_binaries/arm64-v8a
+          
+          # Download the frida-inject files
+          curl -L https://github.com/frida/frida/releases/latest/download/frida-inject-16.6.5-android-arm.xz -o frida-inject-arm.xz
+          curl -L https://github.com/frida/frida/releases/latest/download/frida-inject-16.6.5-android-arm64.xz -o frida-inject-arm64.xz
+          
+          # Extract the binaries
+          unxz frida-inject-arm.xz
+          unxz frida-inject-arm64.xz
+          
+          # Move the binaries to the appropriate directories
+          mv frida-inject-16.6.5-android-arm frida_binaries/armeabi-v7a/libinjector.so
+          mv frida-inject-16.6.5-android-arm64 frida_binaries/arm64-v8a/libinjector.so
+          
+          # Copy the binaries to the jniLibs directories
+          cp frida_binaries/armeabi-v7a/libinjector.so $GITHUB_WORKSPACE/${{ env.main_project_module }}/src/main/jniLibs/armeabi-v7a/
+          cp frida_binaries/arm64-v8a/libinjector.so $GITHUB_WORKSPACE/${{ env.main_project_module }}/src/main/jniLibs/arm64-v8a/
+
+      - name: Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+
+      # Run Tests Build
+      - name: Run gradle tests
+        run: ./gradlew test
+
+      # Run Build Project
+      - name: Build gradle project
+        run: ./gradlew build
+
+      # Create APK Debug
+      - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
+        run: ./gradlew assembleDebug
+
+      # Create APK Release
+      - name: Build apk release project (APK) - ${{ env.main_project_module }} module
+        run: ./gradlew assemble
+
+      # Upload Artifact Build
+      # Noted For Output [main_project_module]/build/outputs/apk/debug/
+      - name: Upload APK Debug - ${{ env.repository_name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) debug generated
+          path: ${{ env.main_project_module }}/build/outputs/apk/debug/
+
+      # Noted For Output [main_project_module]/build/outputs/apk/release/
+      - name: Upload APK Release - ${{ env.repository_name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
+          path: ${{ env.main_project_module }}/build/outputs/apk/release/

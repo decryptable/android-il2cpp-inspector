@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IL2CPP Inspector</string>
+    <string name="inject_button_label">Jalankan Inspector</string>
+    <string name="target_package_name">Paket aplikasi</string>
+    <string name="no_root_access_available">Akses root tidak tersedia</string>
+    <string name="file_not_exist">File %1$s tidak ditemukan</string>
+    <string name="failed_set_to_executable">Gagal mengatur perizinan eksekusi untuk file %1$s</string>
+    <string name="package_not_found">Paket aplikasi %1$s tidak ditemukan</string>
+    <string name="target_package_required">Paket aplikasi target dibutuhkan</string>
+    <string name="close">Tutup</string>
+    <string name="please_wait">Harap tunggu (%1$x)</string>
+</resources>

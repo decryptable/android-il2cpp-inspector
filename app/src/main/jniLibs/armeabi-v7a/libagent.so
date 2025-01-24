@@ -1,0 +1,1 @@
+Java.perform(()=>{try{let a="/data/local/tmp/libinspector.so";console.log("[*] Loading library: "+a),Java.use("java.lang.Runtime").getRuntime().load0(Java.use("java.lang.Class").forName("java.lang.System"),Java.use("java.lang.String").$new(a)),console.log("[*] Library loaded successfully!")}catch(l){console.error("[!] Error loading library: "+l)}});
