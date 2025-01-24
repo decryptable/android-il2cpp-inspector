@@ -100,19 +100,26 @@ jobs:
           name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
           path: ${{ env.main_project_module }}/build/outputs/apk/release/
 
-      - name: Create a Release
-        uses: elgohr/Github-Release-Action@v5
-        env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Sign APK with keystore
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
         with:
-            title: ${{ env.playstore_name }} - ${{ env.current_timestamp }}
-            prerelease: true
+            releaseDirectory: ${{ env.main_project_module }}/build/outputs/apk/release
+            signingKeyBase64: ${{ secrets.KEY_STORE }}
+            alias: ${{ secrets.KEY_STORE_ALIAS }}
+            keyStorePassword: ${{ secrets.KEY_STORE_PASS }}
+            keyPassword: ${{ secrets.KEY_STORE_PASS }}
+        env:
+            BUILD_TOOLS_VERSION: "30.0.2"
 
       - name: Upload apk(s) to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.main_project_module }}/build/outputs/apk/release/*
+          file: ${{ env.main_project_module }}/build/outputs/apk/release/*-release.apk
           overwrite: true
           file_glob: true
           tag: ${{ github.ref }}
+          prerelease: true
+          draft: true
+          release_name: ${{ env.playstore_name }} - ${{ env.timestamp }}
