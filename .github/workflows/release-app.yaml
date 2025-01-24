@@ -82,7 +82,7 @@ jobs:
 #        run: ./gradlew assembleDebug
 
       # Create APK Release
-      - name: Build apk release project (APK) - ${{ env.main_project_module }} module
+      - name: Build apk release project (APK)
         run: ./gradlew assemble
 
       # Upload Artifact Build
@@ -94,17 +94,15 @@ jobs:
 #          path: ${{ env.main_project_module }}/build/outputs/apk/debug/
 
       # Noted For Output [main_project_module]/build/outputs/apk/release/
-      - name: Upload APK Release - ${{ env.repository_name }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
-          path: ${{ env.main_project_module }}/build/outputs/apk/release/
-
-      - name: setup-android-tools
-        uses: android-actions/setup-android@v3
-        with:
-            packages: 'build-tools'
-
+#      - name: Upload APK Release to artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
+#          path: ${{ env.main_project_module }}/build/outputs/apk/release/
+#
+#      - name: setup-android-tools
+#        uses: android-actions/setup-android@v3
+#
       - name: Sign APK with keystore
         uses: r0adkll/sign-android-release@v1
         id: sign_app
@@ -117,7 +115,7 @@ jobs:
         env:
             BUILD_TOOLS_VERSION: "16.0"
 
-      - name: Upload apk(s) to release
+      - name: Upload APK Release to releases
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
