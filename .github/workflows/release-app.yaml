@@ -12,6 +12,12 @@ on:
 
   workflow_dispatch:
 
+
+permissions:
+  packages: write
+  contents: write
+
+
 jobs:
   build:
 
@@ -90,3 +96,13 @@ jobs:
         with:
           name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
           path: ${{ env.main_project_module }}/build/outputs/apk/release/
+
+      # Uploading to release
+      - name: Create a Release
+        uses: elgohr/Github-Release-Action@v5
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            title: ${{ env.date_today }} - ${{ env.playstore_name }}
+            workdir: ${{ env.main_project_module }}/build/outputs/apk/release/
+            prerelease: true
