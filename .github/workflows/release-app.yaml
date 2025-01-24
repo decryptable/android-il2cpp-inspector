@@ -16,7 +16,6 @@ on:
 permissions:
   packages: write
   contents: write
-  metadata: read
 
 
 jobs:
