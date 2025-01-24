@@ -140,3 +140,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           APP_FOLDER: app
           FILE_DIR: ${{steps.sign_app.outputs.signedReleaseFile}}
+          REPO_BRANCH: ${{ github.ref_name }}
