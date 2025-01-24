@@ -100,6 +100,11 @@ jobs:
           name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
           path: ${{ env.main_project_module }}/build/outputs/apk/release/
 
+      - name: setup-android-tools
+        uses: maxim-lobanov/setup-android-tools@v1
+        with:
+            packages: build-tools;30.0.2
+
       - name: Sign APK with keystore
         uses: r0adkll/sign-android-release@v1
         id: sign_app
