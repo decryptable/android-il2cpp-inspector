@@ -128,8 +128,8 @@ jobs:
       # Rename the APK files from "-unsigned-signed.apk" to "-signed.apk"
       - name: Rename APK files
         run: |
-          mv ${{ env.main_project_module }}/build/outputs/apk/release/*-unsigned-signed.apk ${{ env.main_project_module }}/build/outputs/apk/release/*-signed.apk
-          
+          find ${{ env.main_project_module }}/build/outputs/apk/release/ -name "*-unsigned-signed.apk" -exec sh -c 'mv "$0" "${0%-unsigned-signed.apk}-signed.apk"' {} \;
+
 
       - name: Upload APK Release to releases
         uses: svenstaro/upload-release-action@v2
