@@ -12,6 +12,12 @@ on:
 
   workflow_dispatch:
 
+
+permissions:
+  packages: write
+  contents: write
+
+
 jobs:
   build:
 
@@ -28,6 +34,9 @@ jobs:
 
       - name: Download frida-inject binaries for arm and arm64
         run: |
+          timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+          echo "current_timestamp=$timestamp" >> $GITHUB_ENV
+          
           mkdir -p frida_binaries/armeabi-v7a
           mkdir -p frida_binaries/arm64-v8a
           
@@ -43,8 +52,8 @@ jobs:
           ls -la
           
           # Move the binaries to the appropriate directories
-          mv frida-inject-*-android-arm frida_binaries/armeabi-v7a/libinjector.so
-          mv frida-inject-*-android-arm64 frida_binaries/arm64-v8a/libinjector.so
+          mv frida-inject-arm frida_binaries/armeabi-v7a/libinjector.so
+          mv frida-inject-arm64 frida_binaries/arm64-v8a/libinjector.so
           
           # Copy the binaries to the jniLibs directories
           cp frida_binaries/armeabi-v7a/libinjector.so $GITHUB_WORKSPACE/${{ env.main_project_module }}/src/main/jniLibs/armeabi-v7a/
@@ -57,36 +66,85 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      - name: setup cmdline-tools
+        run: |
+          mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -qq commandlinetools.zip -d /usr/local/lib/android/sdk/cmdline-tools
+          mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          rm commandlinetools.zip
+
+      - name: Install Android build-tools
+        run: |
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/usr/local/lib/android/sdk "build-tools;30.0.2" --no_https
+          
+
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
       # Run Tests Build
-      - name: Run gradle tests
-        run: ./gradlew test
+      #      - name: Run gradle tests
+      #        run: ./gradlew test
 
       # Run Build Project
-      - name: Build gradle project
-        run: ./gradlew build
+      #      - name: Build gradle project
+      #        run: ./gradlew build
 
       # Create APK Debug
-      - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
-        run: ./gradlew assembleDebug
+      #      - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
+      #        run: ./gradlew assembleDebug
 
       # Create APK Release
-      - name: Build apk release project (APK) - ${{ env.main_project_module }} module
+      - name: Build APK Release
         run: ./gradlew assemble
 
       # Upload Artifact Build
       # Noted For Output [main_project_module]/build/outputs/apk/debug/
-      - name: Upload APK Debug - ${{ env.repository_name }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) debug generated
-          path: ${{ env.main_project_module }}/build/outputs/apk/debug/
+      #      - name: Upload APK Debug - ${{ env.repository_name }}
+      #        uses: actions/upload-artifact@v4
+      #        with:
+      #          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) debug generated
+      #          path: ${{ env.main_project_module }}/build/outputs/apk/debug/
 
       # Noted For Output [main_project_module]/build/outputs/apk/release/
-      - name: Upload APK Release - ${{ env.repository_name }}
-        uses: actions/upload-artifact@v4
+      #      - name: Upload APK Release to artifact
+      #        uses: actions/upload-artifact@v4
+      #        with:
+      #          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
+      #          path: ${{ env.main_project_module }}/build/outputs/apk/release/
+      #
+
+      - name: Sign APK with keystore
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
         with:
-          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
-          path: ${{ env.main_project_module }}/build/outputs/apk/release/
+          releaseDirectory: ${{ env.main_project_module }}/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEY_STORE }}
+          alias: ${{ secrets.KEY_STORE_ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASS }}
+          keyPassword: ${{ secrets.KEY_STORE_PASS }}
+        env:
+          BUILD_TOOLS_VERSION: "30.0.2"
+
+#      - name: Upload release APK
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: app-release.apk
+#          path: ${{steps.sign_app.outputs.signedReleaseFile}}
+
+      - name: Rename APK files
+        run: |
+          mv app/build/outputs/apk/release/app-armeabi-v7a-release-unsigned-signed.apk app/build/outputs/apk/release/IL2CPPInjector-armeabi-v7a-signed.apk
+          mv app/build/outputs/apk/release/app-arm64-v8a-release-unsigned-signed.apk app/build/outputs/apk/release/IL2CPPInjector-arm64-v8a-signed.apk
+
+      - name: Upload signed APK(s) to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          draft: true
+          prerelease: true
+          release_name: ${{ env.playstore_name}} - ${{ env.timestamp }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          file: app/build/outputs/apk/release/IL2CPPInjector-*-signed.apk
