@@ -39,9 +39,12 @@ jobs:
           unxz frida-inject-arm.xz
           unxz frida-inject-arm64.xz
           
+          echo "Contents after extracting frida archives:"
+          ls -la
+          
           # Move the binaries to the appropriate directories
-          mv frida-inject-16.6.5-android-arm frida_binaries/armeabi-v7a/libinjector.so
-          mv frida-inject-16.6.5-android-arm64 frida_binaries/arm64-v8a/libinjector.so
+          mv frida-inject-*-android-arm frida_binaries/armeabi-v7a/libinjector.so
+          mv frida-inject-*-android-arm64 frida_binaries/arm64-v8a/libinjector.so
           
           # Copy the binaries to the jniLibs directories
           cp frida_binaries/armeabi-v7a/libinjector.so $GITHUB_WORKSPACE/${{ env.main_project_module }}/src/main/jniLibs/armeabi-v7a/
