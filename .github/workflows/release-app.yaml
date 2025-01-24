@@ -102,6 +102,8 @@ jobs:
 #
       - name: setup-android-tools
         uses: android-actions/setup-android@v3
+        with:
+          packages: cmdline-tools
 
       - name: Sign APK with keystore
         uses: r0adkll/sign-android-release@v1
