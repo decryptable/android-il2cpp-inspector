@@ -138,12 +138,13 @@ jobs:
           mv app/build/outputs/apk/release/app-arm64-v8a-release-unsigned-signed.apk app/build/outputs/apk/release/IL2CPPInjector-arm64-v8a-signed.apk
 
       - name: Upload signed APK(s) to release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          draft: true
           prerelease: true
-          title: ${{ env.playstore_name}} - ${{ env.timestamp }}
-          files: |
-            app/build/outputs/apk/release/IL2CPPInjector-armeabi-v7a-signed.apk
-            app/build/outputs/apk/release/IL2CPPInjector-arm64-v8a-signed.apk
+          release_name: ${{ env.playstore_name}} - ${{ env.timestamp }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          file: app/build/outputs/apk/release/IL2CPPInjector-*-signed.apk
