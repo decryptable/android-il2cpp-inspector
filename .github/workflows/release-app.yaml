@@ -125,11 +125,11 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "30.0.2"
 
-      - name: Upload release APK
-        uses: actions/upload-artifact@v2
-        with:
-          name: app-release.apk
-          path: ${{steps.sign_app.outputs.signedReleaseFile}}
+#      - name: Upload release APK
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: app-release.apk
+#          path: ${{steps.sign_app.outputs.signedReleaseFile}}
 
       - name: Echo APK
         run: echo Signed APK FILE ${{steps.sign_app.outputs.signedReleaseFile}}
