@@ -74,15 +74,15 @@ jobs:
 #        run: ./gradlew test
 
       # Run Build Project
-      - name: Build gradle project
-        run: ./gradlew build
+#      - name: Build gradle project
+#        run: ./gradlew build
 
       # Create APK Debug
 #      - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
 #        run: ./gradlew assembleDebug
 
       # Create APK Release
-      - name: Build apk release project (APK)
+      - name: Build APK Release
         run: ./gradlew assemble
 
       # Upload Artifact Build
@@ -100,10 +100,18 @@ jobs:
 #          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
 #          path: ${{ env.main_project_module }}/build/outputs/apk/release/
 #
-      - name: setup-android-tools
-        uses: android-actions/setup-android@v3
-        with:
-          packages: cmdline-tools
+      - name: setup cmdline-tools
+        run: |
+          mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools.zip -d /usr/local/lib/android/sdk/cmdline-tools
+          mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          rm commandlinetools.zip
+
+      - name: Install Android build-tools
+        run: |
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/usr/local/lib/android/sdk "build-tools;30.0.2" --verbose --no_https
+
 
       - name: Sign APK with keystore
         uses: r0adkll/sign-android-release@v1
@@ -115,7 +123,7 @@ jobs:
             keyStorePassword: ${{ secrets.KEY_STORE_PASS }}
             keyPassword: ${{ secrets.KEY_STORE_PASS }}
         env:
-            BUILD_TOOLS_VERSION: "16.0"
+            BUILD_TOOLS_VERSION: "30.0.2"
 
       - name: Upload APK Release to releases
         uses: svenstaro/upload-release-action@v2
