@@ -34,6 +34,9 @@ jobs:
 
       - name: Download frida-inject binaries for arm and arm64
         run: |
+          timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+          echo "current_timestamp=$timestamp" >> $GITHUB_ENV
+          
           mkdir -p frida_binaries/armeabi-v7a
           mkdir -p frida_binaries/arm64-v8a
           
@@ -97,12 +100,19 @@ jobs:
           name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
           path: ${{ env.main_project_module }}/build/outputs/apk/release/
 
-      # Uploading to release
       - name: Create a Release
         uses: elgohr/Github-Release-Action@v5
         env:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-            title: ${{ env.date_today }} - ${{ env.playstore_name }}
-            workdir: ${{ env.main_project_module }}/build/outputs/apk/release/
+            title: ${{ env.playstore_name }} - ${{ env.current_timestamp }}
             prerelease: true
+
+      - name: Upload apk(s) to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ env.main_project_module }}/build/outputs/apk/release/*
+          overwrite: true
+          file_glob: true
+          tag: ${{ github.ref }}
