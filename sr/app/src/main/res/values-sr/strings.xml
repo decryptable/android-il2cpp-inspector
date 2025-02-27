@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IL2CPP Inspector</string>
+    <string name="inject_button_label">Start Inject</string>
+    <string name="target_package_name">Package name</string>
+    <string name="no_root_access_available">No root access available</string>
+    <string name="file_not_exist">File doesn\'t exist: %1$s</string>
+    <string name="failed_set_to_executable">Failed set to executable for : %1$s</string>
+    <string name="package_not_found">Package %1$s not found</string>
+    <string name="target_package_required">Target package required</string>
+    <string name="close">Close</string>
+    <string name="please_wait">Please wait (%1$x)</string>
+</resources>
